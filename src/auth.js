@@ -12,6 +12,7 @@ export default function auth(allowed_roles) {
                 const access = db.collection("access")
                 access.findOne({_id: new ObjectID(api_key)})
                 .then(access_document => {
+                    console.log(allowed_roles)
                     if(access_document){
                         if(allowed_roles.includes(access_document.accesslevel)){
                             next()

@@ -3,6 +3,7 @@ import { db } from "./database.js"
 import { MongoClient, ObjectId } from "mongodb"
 import auth from "./auth.js"
 import cors from "cors"
+import random from 'random'
 
 const port = 8080
 const app = express()
@@ -66,6 +67,21 @@ app.post("/add_reading", (req, res) => {
 
     if (time) reading_documents["Time"] = time;
     if(temperatureF) reading_documents["TemperatureF"] = temperatureF; 
+
+    if(!device_id){   
+        if(device_name){
+            
+            device_name.split("")
+            let last = device_name.pop()
+            let first = device_name.shift()
+            let num = random.int((min = 1000), (max = 100000))
+            device_id = first + last + num
+            reading_documents["Device ID"] = device_id;
+     
+
+        }
+
+    }
 
     console.log(reading_documents)
 
@@ -304,29 +320,30 @@ app.put("/reading/update_long_lat", auth("admin"), (req, res) => {
 }
 )
 
+// asdasadsasd
+//get reading by longitude and latitude between a time frame
+app.get("/reading/long_lat_date", auth(["user","admin"]), (req, res) => {
+    let longitude = req.body.longitude
+    let latitude = req.body.latitude
+    let start_time = req.body.start_time
+    let end_time = req.body.end_time
 
-// //get reading by lattitude and longitude by day
-// app.get("/reading/long_lat_day", auth("user"), (req, res) => {
-//     let longitude = req.query.longitude
-//     let latitude = req.query.latitude
-//     let day = req.query.day
-//     let month = req.query.month
-//     let year = req.query.year
-//     let time = new Date(year, month, day)
-//     if (longitude && latitude && day && month && year) {
-//         db.collection("readings").findOne({ Longitude: longitude, Latitude: latitude, Time: { $gt: time.toISOString() } }, (err, doc) => {
-//             if (err) {
-//                 res.status(500).json({ message: "error" })
-//             } else {
-//                 res.status(200).json(doc)
-//             }
-//         }
-//         )
-//     } else {
-//         res.status(400).json("Invalid API Key")
-//     }
-// }
-// )
+    if (longitude && latitude && start_time && end_time) {
+        db.collection("readings").find({ Longitude: longitude, Latitude: latitude, Time: { $gt: start_time, $lt: end_time } }).toArray().then((docs, err) => {
+            if (docs) {
+                res.status(500).json( docs )
+
+            } else {
+                res.status(200).json(err)
+            }
+        }
+        )
+    } else {
+        res.status(400).json("Invalid API Key")
+    }
+}
+
+)
 
 
 
